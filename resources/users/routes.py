@@ -30,10 +30,12 @@ def get_user(user_id):
 #get all posts for an individual user
 @app.get('/user/<user_id>/post')
 def get_user_posts(user_id):
-    if user_id not in users:
-        return {'message': 'user not found'}, 400 
-    user_posts = [post for post in posts.values() if post['user_id'] == user_id]
-    return {'user_posts': user_posts}, 200
+  if user_id not in users:
+    return {'message': 'user not found'}, 400
+  user_posts = [{'name':post['name'], 'location':post['location'], 'highlights':post['highlights']}
+    for post in posts.values() 
+    if post['user_id'] == user_id]
+  return {'user_posts': user_posts}, 200
 
 
 # #add new user
