@@ -1,15 +1,18 @@
 users = {
   '1':{
     'username':'Andre3000',
-    'email':'outkast@email.com'
+    'email':'outkast@email.com',
+    'password': '123'
   },
   '2':{
     'username':'MrPresi',
-    'email':'presi@email.com'
+    'email':'presi@email.com',
+    'password': '456'
   },
    '3':{
     'username':'WonderWoman',
-    'email':'wonder@email.com'
+    'email':'wonder@email.com',
+    'password': '789'
    }
 }
 
