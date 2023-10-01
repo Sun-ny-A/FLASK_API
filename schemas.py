@@ -1,5 +1,6 @@
 from marshmallow import Schema, fields #fields allow us to specify info we need coming in and out and the datatyp
 
+#marshmallow schemas = group of classes that helps validate info coming into one of our routes/requests
 
 class PostSchema(Schema):
     id = fields.Str(dumps_only=True) #serializes data as info gets sent back, dumps only = not required when receiving a post only when sending

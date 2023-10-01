@@ -1,10 +1,15 @@
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
+#using sqlalchemy to create a table from a class
+
+
 class UserModel(db.Model):
 
     __tablename__ = 'users'
 
+
+    #columns
     id = db.Column(db.Integer, primary_key = True)  #primary_key = True makes it SERIAL
     username = db.Column(db.String, unique=True, nullable=False) #nullable=False username required field
     email = db.Column(db.String, unique=True, nullable=False)
@@ -16,7 +21,7 @@ class UserModel(db.Model):
     def __repr__(self):
         return f'<User: {self.username}'
     
-
+    #storing and securing pw
     def hash_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -24,7 +29,7 @@ class UserModel(db.Model):
     def check_password(self, password):
      return check_password_hash(self.password_hash, password)
     
-
+    #creating a user
     def from_dict(self, dict):
         password = dict.pop('password')
         self.hash_password(password)

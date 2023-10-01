@@ -1,6 +1,8 @@
 
 import os #helps us locate .env file
 
+#this may be in __init__ instead of its own folder
+
 class Config:
   PROPAGATE_EXCEPTIONS = True   #api errors sent to flask app for debugging
   API_TITLE = 'Fakebook Rest Api'   #our name for api
