@@ -23,4 +23,6 @@ api.register_blueprint(post_bp)
 
 from resources.users import routes #import at bottom of file or will get errors
 from resources.posts import routes
-from resources.users.UserModel import UserModel #import after db
+
+from resources.users.models import UserModel #import after db
+from resources.posts.PostModel import PostModel

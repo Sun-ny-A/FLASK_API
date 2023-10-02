@@ -4,10 +4,11 @@ from uuid import uuid4
 from flask_smorest import abort
 from sqlalchemy.exc import IntegrityError
 
-from schemas import PostSchema, UpdateUserSchema, UserSchema
+from schemas import PostSchema, UpdateUserSchema, UserSchema, UserSchemaNested
 
 from . import bp
-from .UserModel import UserModel
+from .models import UserModel
+from app import db
 from db import users, posts
 
 
@@ -49,6 +50,8 @@ class UserList(MethodView): #group similar endpoints together into a class
         #users[uuid4().hex] = user_data
         user = UserModel()
         user.from_dict(user_data)
+        db.session.add(user)
+        db.session.committ()
         # password = user_data.pop('password')
         # user.hash_password(password)
         try:
@@ -64,7 +67,7 @@ class UserList(MethodView): #group similar endpoints together into a class
 @bp.route('/user/<user_id>')
 class User(MethodView):
 
-    @bp.response(200, UserSchema)
+    @bp.response(200, UserSchemaNested)
     def get(self, user_id):
         user = UserModel.query.get_or_404(user_id, description='User Not Found')
         return user
@@ -91,114 +94,39 @@ class User(MethodView):
                 abort(400, message='Username or Email already Taken')
 
 
-    # #also rework user variable
-    # #edit/update info, <> slug for unique endpoint, default str
-    # @bp.response(200, UserSchema)
-    # @bp.arguments(UpdateUserSchema)
-    # def put(self, user_data, user_id): #update_user changed to put
-    #     user_data = request.get_json()
-    #     try:
-    #         user = users[user_id]
-    #         if user['password'] != user_data['password']:
-    #             abort(400, message='Incorrect Password')
-    #         #user.update(user_data)
-    #         user |= user_data   #|= is shorthand to update a dict ---> user.update(user_data)
-    #         if 'new_password' in user_data:
-    #             new_password = user.pop('new_password')
-    #             user['password'] = new_password
-    #         return user, 200
-    #     except KeyError:
+
+    # #get all posts for an individual user
+    # @bp.get('/user/<user_id>/post')
+    # @bp.response(200, PostSchema(many=True))
+    # def get_user_posts(user_id):
+    #     if user_id not in users:
     #         abort(404, message='Post not Found')
     #         #return {'message': 'user not found'}, 400
-
-
-    #get all posts for an individual user
-    @bp.get('/user/<user_id>/post')
-    @bp.response(200, PostSchema(many=True))
-    def get_user_posts(user_id):
-        if user_id not in users:
-            abort(404, message='Post not Found')
-            #return {'message': 'user not found'}, 400
-        user_posts = [{'name':post['name'], 'location':post['location'], 'highlights':post['highlights']}
-            for post in posts.values()
-            if post['user_id'] == user_id]
-        return {'user_posts': user_posts}, 200
+    #     user_posts = [{'name':post['name'], 'location':post['location'], 'highlights':post['highlights']}
+    #         for post in posts.values()
+    #         if post['user_id'] == user_id]
+    #     return {'user_posts': user_posts}, 200
 
 
 
+@bp.route('/user/follow/<follower_id>/<followed_id>')
+class FollowUser(MethodView):
 
     
-
-######### HELP
-# #get all posts for an individual user
-# #@bp.get('/user/<user_id>/post')
-# def get_user_posts(user_id):
-#   if user_id not in users:
-#     abort(404, message='Post not Found')
-#     #return {'message': 'user not found'}, 400
-#   user_posts = [{'name':post['name'], 'location':post['location'], 'highlights':post['highlights']}
-#     for post in posts.values() 
-#     if post['user_id'] == user_id]
-#   return {'user_posts': user_posts}, 200
+    @bp.response(200, UserSchema(many=True))
+    def post(self, follower_id, followed_id):
+        user = UserModel.query.get(follower_id)
+        user_to_follow = UserModel.query.get(followed_id)
+        if user and user_to_follow:
+            user.follow_user(user_to_follow)
+            return user.followed.all()
+        abort(400, message='Invalid user info')
 
 
-# #add new user
-# @app.post('/user') #create/send info
-# def create_user():
-#   user_data = request.get_json() #created username and email
-#   user_data['country'] = [] #to add country into data create a dict
-#   users.append(user_data) #append new person's info to users
-#   print(users)
-#   return user_data, 201
-
-
-# #delete item in highlight list
-# def delete(self): #renamed delete_user to delete
-#     user_data = request.get_json()
-#     for user in users:
-#         for get_country in user.get('country', []): #use .get to ouput value of a dict, country values are a list of dicts
-#             if 'highlights' in get_country:
-#                 if 'skiing' in get_country['highlights']:
-#                     get_country['highlights'].remove('skiing')
-#     return {'message':f'Skiing is deleted'}, 202
-
-
-# #changed users from list of dicts to dicts and deleted country
-# @bp.post('/user') #create/send info
-# def create_user():
-#   user_data = request.get_json() #country no longer in users dict, in posts
-#   user_data[uuid4().hex] = user_data 
-#   return user_data, 201
-
-
-#update name of a country
-# @app.put('/user') #edit/update info
-# def update_user():
-#     user_data = request.get_json()
-#     new_name = user_data.get('new name') #.get = built in function that outputs a dict value
-#     for user in users:
-#         if 'country' in user and 'name' in user['country'][0] and user['country'][0]['name'] == 'Cuba':
-#             user['country'][0]['name'] = new_name
-#             return user, 200
-#     return user, 200
-
-
-
-    
-#second approach to upate_user
-# def update_user(user_id):
-#   user_data = request.get_json()
-#   if user_id in users:
-#     user = users[user_id]
-#     return user, 201
-#   return {'message': 'user not found'}, 400
-
-
-    
-    
-    #error code
-    # for i, user in enumerate(users):
-    #     if user['country']['highlights'][0] == user_data['country']['highlights'][0]:
-    #         users['country']['highlights'][0].pop()
-    #         print(users)
-    # return {'message':f'{user_data["country"]["highlights"][0]} is deleted'}, 202
+    def put(self, follower_id, followed_id):
+        user = UserModel.query.get(follower_id)
+        user_to_unfollow = UserModel.query.get(followed_id)
+        if user and user_to_unfollow:
+            user.unfollow_user(user_to_unfollow)
+            return {'message': f'User: {user_to_unfollow.username} unfollowed'}, 202
+        abort(400, message='Invalid user info') 
