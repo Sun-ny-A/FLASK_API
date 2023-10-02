@@ -9,7 +9,7 @@ class PostSchema(Schema):
     name = fields.Str(required=True) #required = true, user input required
     location = fields.Str(required=True)
     highlights = fields.List(fields.Str(), required=True)
-    user_id = fields.Int(required=True)
+    user_id = fields.Int(dump_only=True)
     timestamp = fields.Str(dump_only=True)
     #user = fields.List(fields.Nested(UserSchema()), dump_only=True)
 
@@ -40,6 +40,7 @@ class UpdateUserSchema(Schema): #don't need id here because we're not sending us
     last_name = fields.Str() 
 
 
-class DeleteUserSchema(Schema):
-    username = fields.Str(required=True)
+class AuthUserSchema(Schema):
+    username = fields.Str()
+    email = fields.Str()
     password = fields.Str(required=True, load_only=True)
